@@ -16,15 +16,15 @@ public struct CachedFileInfo {
     let blobLastModified: TimeInterval
 
     var blobLastAccessedStr: String {
-        ""
+        Date(timeIntervalSince1970: blobLastAccessed).timeAgoDisplay()
     }
 
     var blobLastModifiedStr: String {
-        ""
+        Date(timeIntervalSince1970: blobLastModified).timeAgoDisplay()
     }
 
     var sizeOnDiskStr: String {
-        ""
+        ByteCountFormatter.string(fromByteCount: Int64(sizeOnDisk), countStyle: .file)
     }
 }
 

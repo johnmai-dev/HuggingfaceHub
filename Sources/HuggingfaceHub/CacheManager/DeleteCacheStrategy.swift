@@ -15,7 +15,7 @@ struct DeleteCacheStrategy {
     let snapshots: Set<URL>
 
     var expectedFreedSizeStr: String {
-        ""
+        ByteCountFormatter.string(fromByteCount: Int64(expectedFreedSize), countStyle: .file)
     }
 
     func execute() {

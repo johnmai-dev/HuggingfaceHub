@@ -7,13 +7,11 @@
 
 import Foundation
 
-
-    
 public class CacheManager {
     let cacheDir: URL
     let fileManager = FileManager.default
     
-    init(cacheDir: URL? = nil) throws {
+    public init(cacheDir: URL? = nil) throws {
         if let cacheDir {
             self.cacheDir = cacheDir
         } else {
@@ -29,7 +27,7 @@ public class CacheManager {
         }
     }
     
-    func scanCacheDir() throws -> HFCacheInfo {
+    public func scanCacheDir() throws -> HFCacheInfo {
         var repos = Set<CachedRepoInfo>()
         var warnings = [Error]()
         

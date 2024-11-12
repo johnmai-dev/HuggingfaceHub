@@ -7,26 +7,25 @@
 
 import Foundation
 
-struct CachedRevisionInfo {
-    let commitHash: String
-    let snapshotPath: URL
-    let sizeOnDisk: Int
-    let files: Set<CachedFileInfo>
-    let refs: Set<String>
-    let lastModified: TimeInterval
+public struct CachedRevisionInfo {
+    public let commitHash: String
+    public let snapshotPath: URL
+    public let sizeOnDisk: Int
+    public let files: Set<CachedFileInfo>
+    public let refs: Set<String>
+    public let lastModified: TimeInterval
 
-    var lastModifiedStr: String {
-        return ""
+    public var lastModifiedStr: String {
+        Date(timeIntervalSince1970: lastModified).timeAgoDisplay()
     }
 
-    var sizeOnDiskStr: String {
-        return ""
+    public var sizeOnDiskStr: String {
+        ByteCountFormatter.string(fromByteCount: Int64(sizeOnDisk), countStyle: .file)
     }
 
-    var nbFiles: Int {
-        return files.count
+    public var nbFiles: Int {
+        files.count
     }
 }
 
-extension CachedRevisionInfo: Hashable {
-}
+extension CachedRevisionInfo: Hashable {}

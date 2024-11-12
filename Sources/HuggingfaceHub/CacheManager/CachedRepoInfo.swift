@@ -8,28 +8,28 @@
 import Foundation
 
 public struct CachedRepoInfo {
-    let repoId: String
-    let repoType: RepoType
-    let repoPath: URL
-    let sizeOnDisk: Int
-    let nbFiles: Int
-    let revisions: Set<CachedRevisionInfo>
-    let lastAccessed: TimeInterval
-    let lastModified: TimeInterval
+    public let repoId: String
+    public let repoType: RepoType
+    public let repoPath: URL
+    public let sizeOnDisk: Int
+    public let nbFiles: Int
+    public let revisions: Set<CachedRevisionInfo>
+    public let lastAccessed: TimeInterval
+    public let lastModified: TimeInterval
 
-    var lastAccessedStr: String {
-        ""
+    public var lastAccessedStr: String {
+        Date(timeIntervalSince1970: lastAccessed).timeAgoDisplay()
     }
 
-    var lastModifiedStr: String {
-        ""
+    public var lastModifiedStr: String {
+        Date(timeIntervalSince1970: lastModified).timeAgoDisplay()
     }
 
-    var sizeOnDiskStr: String {
-        ""
+    public var sizeOnDiskStr: String {
+        ByteCountFormatter.string(fromByteCount: Int64(sizeOnDisk), countStyle: .file)
     }
 
-    var refs: [String: CachedRevisionInfo] {
+    public var refs: [String: CachedRevisionInfo] {
         var refsDict = [String: CachedRevisionInfo]()
         for revision in revisions {
             for ref in revision.refs {
@@ -41,5 +41,3 @@ public struct CachedRepoInfo {
 }
 
 extension CachedRepoInfo: Hashable {}
-
-

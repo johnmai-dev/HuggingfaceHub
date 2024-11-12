@@ -28,6 +28,7 @@ let package = Package(
         ),
         .executableTarget(name: "HuggingfaceHubCLI", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            "HuggingfaceHub",
         ]),
     ]
 )
