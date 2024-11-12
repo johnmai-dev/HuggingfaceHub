@@ -18,7 +18,7 @@ public class CacheManager {
 #if os(macOS)
             self.cacheDir = URL(fileURLWithPath: Constants.hfHubCache.expandingTildeInPath).standardized
             if !self.cacheDir.isDirectory() {
-                throw CacheManagerError.notFound(self.cacheDir)
+                throw Error.notFound(self.cacheDir)
             }
 #else
             let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -29,7 +29,7 @@ public class CacheManager {
     
     public func scanCacheDir() throws -> HFCacheInfo {
         var repos = Set<CachedRepoInfo>()
-        var warnings = [Error]()
+        var warnings = [CorruptedError]()
         
         let repoURLs = try fileManager.contentsOfDirectory(
             at: cacheDir,
@@ -44,7 +44,7 @@ public class CacheManager {
             
             do {
                 try repos.insert(scanCachedRepo(repoURL))
-            } catch {
+            } catch let error as CorruptedError {
                 warnings.append(error)
             }
         }
@@ -61,7 +61,7 @@ public class CacheManager {
         var refsByHash: [String: Set<String>] = [:]
         if refsPath.exists() {
             if refsPath.isFile() {
-                throw CacheManagerError.corrupted("Refs directory cannot be a file: \(refsPath.path)")
+                throw CorruptedError.refsNotDirectory(refsPath)
             }
             
             if let enumerator = fileManager.enumerator(
@@ -84,7 +84,7 @@ public class CacheManager {
     
     func scanCachedRepo(_ repoURL: URL) throws -> CachedRepoInfo {
         if !repoURL.hasDirectoryPath {
-            throw CacheManagerError.corrupted("Repo path is not a directory: \(repoURL.path)")
+            throw CorruptedError.notDirectory(repoURL)
         }
         
         let (repoType, repoId) = try Self.parseRepo(repoURL)
@@ -94,7 +94,7 @@ public class CacheManager {
         let snapshotsPath = repoURL.appendingPathComponent("snapshots")
         
         guard snapshotsPath.isDirectory() else {
-            throw CacheManagerError.corrupted("Snapshots dir doesn't exist in cached repo: \(snapshotsPath.path)")
+            throw CorruptedError.snapshotsNotExist(snapshotsPath)
         }
         
         var refsByHash = try scanRefsByHash(repoURL)
@@ -113,7 +113,7 @@ public class CacheManager {
             }
             
             if revisionURL.isFile() {
-                throw CacheManagerError.corrupted("Snapshots folder corrupted. Found a file: \(revisionURL.path)")
+                throw CorruptedError.revisionNotDirectory(revisionURL)
             }
             
             var cachedFiles = Set<CachedFileInfo>()
@@ -130,7 +130,7 @@ public class CacheManager {
                     
                     let blobURL = fileURL.resolvingSymlinksInPath()
                     guard blobURL.exists() else {
-                        throw CacheManagerError.corrupted("Blob missing (broken symlink): \(blobURL.path)")
+                        throw CorruptedError.missingBlob(blobURL)
                     }
                     
                     if blobStats[blobURL] == nil {
@@ -175,7 +175,7 @@ public class CacheManager {
         }
         
         guard refsByHash.isEmpty else {
-            throw CacheManagerError.corrupted("Reference(s) refer to missing commit hashes: \(refsByHash) (\(repoURL.path)).")
+            throw CorruptedError.refersToMissingCommitHashes(refsByHash, repoURL)
         }
         
         let (repoLastAccessed, repoLastModified): (TimeInterval, TimeInterval)
@@ -208,7 +208,7 @@ public class CacheManager {
         let repoName = repoURL.lastPathComponent
 
         guard let separatorRange = repoName.range(of: "--") else {
-            throw CacheManagerError.corrupted("Repo path is not a valid HuggingFace cache directory: \(repoURL.path)")
+            throw CorruptedError.notValidHuggingFaceCacheDirectory(repoURL)
         }
         
         var repoType = String(repoName[..<separatorRange.lowerBound])
@@ -219,9 +219,56 @@ public class CacheManager {
         let repoId = repoName[separatorRange.upperBound...].replacingOccurrences(of: "--", with: "/")
         
         guard let repoType = RepoType(rawValue: repoType) else {
-            throw CacheManagerError.corrupted("Repo type must be `dataset`, `model` or `space`, found `\(repoURL.path)` (\(repoURL.path)")
+            throw CorruptedError.repoTypeMismatch(repoType, repoURL)
         }
             
         return (repoType, repoId)
+    }
+}
+
+extension CacheManager {
+    enum Error: LocalizedError {
+        case notFound(URL)
+
+        var errorDescription: String {
+            switch self {
+            case .notFound(let url):
+                "Cache directory not found or not a directory: \(url.path). Please use `cacheDir` argument or set `HF_HUB_CACHE` environment variable."
+            }
+        }
+    }
+}
+
+public extension CacheManager {
+    enum CorruptedError: LocalizedError {
+        case notDirectory(URL)
+        case notValidHuggingFaceCacheDirectory(URL)
+        case repoTypeMismatch(String, URL)
+        case snapshotsNotExist(URL)
+        case revisionNotDirectory(URL)
+        case refsNotDirectory(URL)
+        case missingBlob(URL)
+        case refersToMissingCommitHashes([String: Set<String>], URL)
+        
+        public var errorDescription: String? {
+            switch self {
+            case .notDirectory(let url):
+                "Repo path is not a directory: \(url.path)"
+            case .notValidHuggingFaceCacheDirectory(let url):
+                "Repo path is not a valid HuggingFace cache directory: \(url.path)"
+            case .repoTypeMismatch(let type, let url):
+                "Repo type must be `dataset`, `model` or `space`, found `\(type)` (\(url.path))"
+            case .snapshotsNotExist(let url):
+                "Snapshots dir doesn't exist in cached repo: \(url.path)"
+            case .revisionNotDirectory(let url):
+                "Snapshots folder corrupted. Found a file: \(url.path)"
+            case .missingBlob(let url):
+                "Blob missing (broken symlink): \(url.path)"
+            case .refersToMissingCommitHashes(let refsByHash, let url):
+                "Reference(s) refer to missing commit hashes: \(refsByHash) (\(url.path))."
+            case .refsNotDirectory(let url):
+                "Refs directory cannot be a file: \(url.path)"
+            }
+        }
     }
 }

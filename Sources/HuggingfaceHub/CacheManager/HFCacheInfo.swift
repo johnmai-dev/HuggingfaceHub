@@ -11,7 +11,7 @@ import Foundation
 public struct HFCacheInfo {
     public let sizeOnDisk: Int
     public let repos: Set<CachedRepoInfo>
-    public let warnings: [Error]
+    public let warnings: [CacheManager.CorruptedError]
 
     public var sizeOnDiskStr: String {
         return ByteCountFormatter.string(fromByteCount: Int64(sizeOnDisk), countStyle: .file)
