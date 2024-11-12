@@ -42,7 +42,7 @@ struct ScanCacheCommand: ParsableCommand {
     
     private func printSummary(_ hfCacheInfo: HFCacheInfo, duration: TimeInterval) {
         let roundedDuration = (duration * 10).rounded() / 10
-        print("\nDone in \(roundedDuration)s. Scanned \(hfCacheInfo.repos.count) repo(s) for a total of \(hfCacheInfo.sizeOnDiskStr).")
+        print("\nDone in \(roundedDuration)s. Scanned \(hfCacheInfo.repos.count) repo(s) for a total of \(ANSI.red(hfCacheInfo.sizeOnDiskStr)).")
         
         guard !hfCacheInfo.warnings.isEmpty else { return }
         
