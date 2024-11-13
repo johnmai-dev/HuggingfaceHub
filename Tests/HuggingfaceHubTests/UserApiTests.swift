@@ -9,14 +9,14 @@ import Testing
 
 struct UserApiTests {
     @Test func whoami() async throws {
-        let api = Api()
+        let api = HFApi()
         let response = try await api.whoami(token: "hf_test")
         print(response)
     }
 
     @Test func whoamiAuthenticationError() async throws {
-        await #expect(throws: Api.Error.authenticationError) {
-            let api = Api()
+        await #expect(throws: HFApi.Error.authenticationError) {
+            let api = HFApi()
             _ = try await api.whoami()
         }
     }

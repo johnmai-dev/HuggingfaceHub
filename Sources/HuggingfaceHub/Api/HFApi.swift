@@ -1,5 +1,5 @@
 //
-//  HfApi.swift
+//  HFApi.swift
 //  HuggingfaceHub
 //
 //  Created by John Mai on 2024/11/7.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class Api {
+public class HFApi {
     let endpoint: String
     let token: String?
     let libraryName: String?
@@ -31,7 +31,7 @@ public class Api {
         self.headers = headers
     }
 
-    func buildHfHeaders(
+    func buildHFHeaders(
         token: String? = nil,
         libraryName: String? = nil,
         libraryVersion: String? = nil,
@@ -89,11 +89,12 @@ public class Api {
     }
 }
 
-public extension Api {
+public extension HFApi {
     enum Error: Swift.Error, LocalizedError, Equatable {
         case invalidResponse
         case authenticationError
         case httpStatusCode(Int)
+        case invalidExpandOptions
 
         public var errorDescription: String? {
             switch self {
@@ -103,6 +104,8 @@ public extension Api {
                 "Authentication failed"
             case .httpStatusCode(let code):
                 "HTTP error with status code: \(code)"
+            case .invalidExpandOptions:
+                "`expand` cannot be used if `securityStatus` or `files_metadata` are set."
             }
         }
     }

@@ -7,12 +7,12 @@
 
 import Foundation
 
-public extension Api {
+public extension HFApi {
     func whoami(token: String? = nil) async throws -> User {
         let url = URL(string: "\(endpoint)/api/whoami-v2")!
 
         var request = URLRequest(url: url)
-        let headers = buildHfHeaders(token: token)
+        let headers = buildHFHeaders(token: token)
 
         request.allHTTPHeaderFields = headers
 
