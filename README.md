@@ -4,7 +4,7 @@ The Swift client for the Huggingface Hub.
 
 > Swift Package to implement a [huggingface_hub](https://github.com/huggingface/huggingface_hub) API in Swift.
 
-## Features [🚧 WIP] 
+## Features [🚧 WIP]
 
 > `huggingface_hub` Documentation (Python): https://huggingface.co/docs/huggingface_hub
 
@@ -37,9 +37,7 @@ The Swift client for the Huggingface Hub.
 - [ ] Integrate any ML framework with the Hub
 - [ ] Webhooks
 
-## Installation
-
-### Swift Package Manager
+## Swift Package Manager
 
 ```swift
 let package = Package(
@@ -52,3 +50,23 @@ let package = Package(
 )
 ```
 
+## Command Line Interface (CLI)
+
+### Build the CLI
+
+```bash
+swift build -c release
+
+# Or Makefile command
+# make build-release
+```
+
+cli executable will be located in `.build/release/huggingface-cli`
+
+### Usage
+
+#### Scan Cache
+
+```bash
+huggingface-cli scan-cache
+```
