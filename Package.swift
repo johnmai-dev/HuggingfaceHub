@@ -23,17 +23,26 @@ let package = Package(
             url: "https://github.com/Flight-School/AnyCodable",
             from: "0.6.0"
         ),
+        .package(
+            url: "https://github.com/Alamofire/Alamofire.git",
+            .upToNextMajor(from: "5.10.0")
+        )
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "HuggingfaceHub",
-            dependencies: ["AnyCodable"]
+            dependencies: [
+                "AnyCodable",
+                .product(name: "Alamofire", package: "Alamofire")
+            ]
         ),
         .testTarget(
             name: "HuggingfaceHubTests",
-            dependencies: ["HuggingfaceHub"]
+            dependencies: [
+                "HuggingfaceHub",
+            ]
         ),
         .executableTarget(
             name: "HuggingfaceHubCLI",

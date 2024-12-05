@@ -15,6 +15,8 @@ public class HFApi {
     let userAgent: [String: String]?
     let headers: [String: String]?
 
+    let session: URLSession = .shared
+
     public init(
         endpoint: String? = nil,
         token: String? = nil,
@@ -51,9 +53,6 @@ public class HFApi {
         } else if let token = self.token {
             hfHeaders["authorization"] = "Bearer \(token)"
         }
-//        else if let token = Constants.token() {
-//            hfHeaders["authorization"] = "Bearer \(token)"
-//        }
 
         if let headers {
             hfHeaders.merge(headers) { _, new in new }

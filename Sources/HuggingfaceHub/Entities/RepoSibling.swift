@@ -6,7 +6,7 @@
 //
 
 
-struct RepoSibling: Codable {
+public struct RepoSibling: Codable {
         let rfilename: String
         let size: Int?
         let blobId: String?

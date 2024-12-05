@@ -226,7 +226,7 @@ public class CacheManager {
     }
 }
 
-extension CacheManager {
+public extension CacheManager {
     enum Error: LocalizedError {
         case notFound(URL)
 

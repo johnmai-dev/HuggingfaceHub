@@ -8,7 +8,19 @@
 import Foundation
 
 public extension HFApi {
-    func modelInfo(repoId: String, options: ModelInfoOptions = .init()) async throws -> ModelInfo {
+    
+    func repoInfo(
+        repoId: String,
+        options: ModelInfoOptions = .init()
+    ) async throws -> RepoInfoType {
+        return try await self.modelInfo(repoId: repoId, options: options)
+    }
+        
+    
+    func modelInfo(
+        repoId: String,
+        options: ModelInfoOptions = .init()
+    ) async throws -> ModelInfo {
         if options.expand != nil, options.expand?.isEmpty == false, options.securityStatus == true || options.filesMetadata {
             throw Error.invalidExpandOptions
         }
@@ -42,8 +54,10 @@ public extension HFApi {
 
         var request = URLRequest(url: urlComponents.url!)
         request.allHTTPHeaderFields = headers
+        
+        print("request url -> ",request.url?.absoluteString)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw Error.invalidResponse
@@ -60,6 +74,9 @@ public extension HFApi {
         decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
         
         print(String(data:data, encoding: .utf8)!)
+        
+        let parsed = try JSONSerialization.jsonObject(with: data, options: [])
+        print("parsed -> ",((parsed as! [String: Any])["tags"] as! [String])[0])
 
         return try decoder.decode(ModelInfo.self, from: data)
     }

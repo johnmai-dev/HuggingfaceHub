@@ -8,50 +8,50 @@
 import AnyCodable
 import Foundation
 
-public struct ModelInfo: Codable {
-    let id: String
-    let author: String?
-    let sha: String?
-    let createdAt: Date?
-    let lastModified: Date?
-    let isPrivate: Bool?
-    let isDisabled: Bool?
-    let downloads: Int?
-    let downloadsAllTime: Int?
-    let gated: GatedStatus?
-    let gguf: [String: Any]?
-    let inference: InferenceStatus?
-    let likes: Int?
-    let libraryName: String?
-    let tags: [String]?
-    let pipelineTag: String?
-    let maskToken: String?
-    let cardData: ModelCardData?
-    let widgetData: [WidgetData]?
-    let modelIndex: [String: Any]?
-    let config: [String: Any]?
-    let transformersInfo: TransformersInfo?
-    let trendingScore: Int?
-    let siblings: [RepoSibling]?
-    let spaces: [String]?
-    let safetensors: SafeTensorsInfo?
-    let securityRepoStatus: [String: Any]?
+public struct ModelInfo: Codable, RepoInfoType {
+    public let id: String
+    public let author: String?
+    public let sha: String?
+    public let createdAt: Date?
+    public let lastModified: Date?
+    public let isPrivate: Bool?
+    public let isDisabled: Bool?
+    public let downloads: Int?
+    public let downloadsAllTime: Int?
+    public let gated: GatedStatus?
+    public let gguf: [String: Any]?
+    public let inference: InferenceStatus?
+    public let likes: Int?
+    public let libraryName: String?
+    public let tags: [String]?
+    public let pipelineTag: String?
+    public let maskToken: String?
+    public let cardData: ModelCardData?
+    public let widgetData: [WidgetData]?
+    public let modelIndex: [String: Any]?
+    public let config: [String: Any]?
+    public let transformersInfo: TransformersInfo?
+    public let trendingScore: Int?
+    public let siblings: [RepoSibling]?
+    public let spaces: [String]?
+    public let safetensors: SafeTensorsInfo?
+    public let securityRepoStatus: [String: Any]?
 
-    struct GenericResponse<T: Codable>: Codable {
+    public struct GenericResponse<T: Codable>: Codable {
         let value: T?
 
-        init(from decoder: Decoder) throws {
+        public init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
             value = try? container.decode(T.self)
         }
     }
 
-    enum GatedStatus: String, Codable {
+    public enum GatedStatus: String, Codable {
         case auto
         case manual
         case disabled = "false"
 
-        init(from decoder: Decoder) throws {
+        public init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
             if let boolValue = try? container.decode(Bool.self) {
                 self = boolValue ? .manual : .disabled
@@ -70,13 +70,13 @@ public struct ModelInfo: Codable {
         }
     }
 
-    enum InferenceStatus: String, Codable {
+    public enum InferenceStatus: String, Codable {
         case warm
         case cold
         case frozen
     }
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case author
         case sha

@@ -14,7 +14,7 @@ struct HuggingfaceHubCLI: ParsableCommand {
         commandName: "huggingface-cli",
         abstract: "huggingface-cli command helpers",
         usage: "huggingface-cli <command> [<args>]",
-        version: "0.0.1",
+        version: Constants.version,
         subcommands: [ScanCacheCommand.self]
     )
 }
