@@ -6,57 +6,64 @@
 //
 import Foundation
 
-final class Downloader: NSObject {
-    let events: AsyncStream<Event>
-    private let continuation: AsyncStream<Event>.Continuation
+actor Downloader {
+    private var continuation: CheckedContinuation<URL, Error>?
     private let task: URLSessionDownloadTask
 
-    enum Event {
-        case progress(totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
-        case completed(url: URL)
-        case canceled(data: Data?)
-    }
+    private var onProgress: (@Sendable (Double) -> Void)?
 
-    convenience init(url: URL) {
+    init(url: URL) {
         self.init(task: URLSession.shared.downloadTask(with: url))
     }
 
-    convenience init(resumeData data: Data) {
+    init(resumeData data: Data) {
         self.init(task: URLSession.shared.downloadTask(withResumeData: data))
     }
 
     private init(task: URLSessionDownloadTask) {
         self.task = task
-        (self.events, self.continuation) = AsyncStream.makeStream(of: Event.self)
-        super.init()
-        continuation.onTermination = { @Sendable [weak self] _ in
-            self?.cancel()
-        }
     }
 
-    func start() {
-        task.delegate = self
-        task.resume()
+    func start(onProgress: (@Sendable (Double) -> Void)? = nil) async throws -> URL {
+        self.onProgress = onProgress
+        return try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+            task.delegate = Delegate(self)
+            task.resume()
+        }
     }
 
     func cancel() {
-        task.cancel { data in
-            self.continuation.yield(.canceled(data: data))
-            self.continuation.finish()
-        }
+        task.cancel()
     }
 }
 
-extension Downloader: URLSessionDownloadDelegate {
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        continuation.yield(.completed(url: location))
-        continuation.finish()
-    }
+extension Downloader {
+    private final class Delegate: NSObject, URLSessionDownloadDelegate, Sendable {
+        let downloader: Downloader
 
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        continuation.yield(
-            .progress(
-                totalBytesWritten: totalBytesWritten,
-                totalBytesExpectedToWrite: totalBytesExpectedToWrite))
+        init(_ downloader: Downloader) {
+            self.downloader = downloader
+        }
+
+        func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+            Task {
+                await self.downloader.continuation?.resume(returning: location)
+            }
+        }
+
+        func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+            Task {
+                await self.downloader.onProgress?(Double(totalBytesWritten) / Double(totalBytesExpectedToWrite))
+            }
+        }
+
+        func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+            if let error {
+                Task {
+                    await self.downloader.continuation?.resume(throwing: error)
+                }
+            }
+        }
     }
 }
