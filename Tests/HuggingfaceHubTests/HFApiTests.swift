@@ -6,15 +6,18 @@
 //
 
 import Foundation
-@testable import HuggingfaceHub
 import Testing
+
+@testable import HuggingfaceHub
 
 struct HFApiTests {
     @Test
     func deduplicateUserAgent() async throws {
         let api = HFApi()
-        let ua = api.deduplicateUserAgent("python/3.7; python/3.8; hf_hub/0.12; transformers/None; hf_hub/0.12; python/3.7; diffusers/0.12.1")
-        
+        let ua = api.deduplicateUserAgent(
+            "python/3.7; python/3.8; hf_hub/0.12; transformers/None; hf_hub/0.12; python/3.7; diffusers/0.12.1"
+        )
+
         #expect(ua == "python/3.7; python/3.8; hf_hub/0.12; transformers/None; diffusers/0.12.1")
     }
 

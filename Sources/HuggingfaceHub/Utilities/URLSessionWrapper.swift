@@ -61,7 +61,12 @@ class URLSessionWrapper: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
         self.session = session
     }
 
-    func data(for request: URLRequest, followRelativeRedirects: Bool = false) async throws -> (Data, URLResponse) {
+    func data(
+        for request: URLRequest,
+        followRelativeRedirects: Bool = false
+    ) async throws -> (
+        Data, URLResponse
+    ) {
         if followRelativeRedirects {
             let (data, response) = try await self.data(for: request)
 
@@ -70,10 +75,15 @@ class URLSessionWrapper: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
             }
 
             if (300 ... 399).contains(httpResponse.statusCode) {
-                let parsedTarget = URL(string: httpResponse.allHeaderFields["Location"] as? String ?? "")
+                let parsedTarget = URL(
+                    string: httpResponse.allHeaderFields["Location"] as? String ?? "")
                 if parsedTarget?.host == nil {
-                    let nextURL = URL(string: request.url?.absoluteString ?? "")?.appendingPathComponent(parsedTarget?.path ?? "")
-                    return try await self.data(for: URLRequest(url: nextURL!), followRelativeRedirects: true)
+                    let nextURL = URL(string: request.url?.absoluteString ?? "")?
+                        .appendingPathComponent(
+                            parsedTarget?.path ?? ""
+                        )
+                    return try await self.data(
+                        for: URLRequest(url: nextURL!), followRelativeRedirects: true)
                 }
                 return (data, response)
             }
@@ -82,7 +92,12 @@ class URLSessionWrapper: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
         return try await session.data(for: request, delegate: self)
     }
 
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest) async -> URLRequest? {
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest
+    ) async -> URLRequest? {
         nil
     }
 }

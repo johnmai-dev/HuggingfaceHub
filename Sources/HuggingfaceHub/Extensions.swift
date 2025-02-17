@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 extension String {
     func appendingPathComponent(_ str: String) -> String {
         (self as NSString).appendingPathComponent(str)
@@ -32,35 +33,37 @@ extension URL {
 
     func isDirectory() -> Bool {
         var isDir: ObjCBool = false
-        return FileManager.default.fileExists(atPath: self.path, isDirectory: &isDir) && isDir.boolValue
+        return FileManager.default.fileExists(atPath: self.path, isDirectory: &isDir)
+            && isDir.boolValue
     }
 
     func isFile() -> Bool {
         var isDir: ObjCBool = false
-        return FileManager.default.fileExists(atPath: self.path, isDirectory: &isDir) && !isDir.boolValue
+        return FileManager.default.fileExists(atPath: self.path, isDirectory: &isDir)
+            && !isDir.boolValue
     }
-    
+
     func relativePath(from base: URL) -> String? {
         guard self.isFileURL, base.isFileURL else {
             return nil
         }
-            
+
         var workBase = base
         if workBase.pathExtension != "" {
             workBase = workBase.deletingLastPathComponent()
         }
-            
+
         let destComponents = self.standardized.resolvingSymlinksInPath().pathComponents
         let baseComponents = workBase.standardized.resolvingSymlinksInPath().pathComponents
-            
+
         var i = 0
         while i < destComponents.count,
-              i < baseComponents.count,
-              destComponents[i] == baseComponents[i]
+            i < baseComponents.count,
+            destComponents[i] == baseComponents[i]
         {
             i += 1
         }
-            
+
         var relComponents = Array(repeating: "..", count: baseComponents.count - i)
         relComponents.append(contentsOf: destComponents[i...])
         return relComponents.joined(separator: "/")
@@ -77,7 +80,7 @@ extension Date {
 }
 
 extension JSONDecoder.DateDecodingStrategy {
-//    "2024-03-01T08:47:23.000Z"
+    //    "2024-03-01T08:47:23.000Z"
     static let iso8601withFractionalSeconds = custom {
         let container = try $0.singleValueContainer()
         let string = try container.decode(String.self)
@@ -86,7 +89,10 @@ extension JSONDecoder.DateDecodingStrategy {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         guard let date = formatter.date(from: string) else {
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Invalid date: \(string)"
+            )
         }
         return date
     }

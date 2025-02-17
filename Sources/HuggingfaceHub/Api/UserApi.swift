@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension HFApi {
-    func whoami(token: String? = nil) async throws -> User {
+extension HFApi {
+    public func whoami(token: String? = nil) async throws -> User {
         let url = URL(string: "\(endpoint)/api/whoami-v2")!
 
         var request = URLRequest(url: url)
@@ -23,8 +23,8 @@ public extension HFApi {
         }
 
         switch httpResponse.statusCode {
-        case 200..<300: break
-        case 400..<500: throw Error.authenticationError
+        case 200 ..< 300: break
+        case 400 ..< 500: throw Error.authenticationError
         default: throw Error.httpStatusCode(httpResponse.statusCode)
         }
 

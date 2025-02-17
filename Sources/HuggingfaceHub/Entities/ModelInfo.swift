@@ -130,12 +130,18 @@ public struct ModelInfo: Codable, RepoInfoType {
         widgetData = try container.decodeIfPresent([WidgetData].self, forKey: .widgetData)
         modelIndex = try container.decodeIfPresent([String: AnyDecodable].self, forKey: .modelIndex)
         config = try container.decodeIfPresent([String: AnyDecodable].self, forKey: .config)
-        transformersInfo = try container.decodeIfPresent(TransformersInfo.self, forKey: .transformersInfo)
+        transformersInfo = try container.decodeIfPresent(
+            TransformersInfo.self,
+            forKey: .transformersInfo
+        )
         trendingScore = try container.decodeIfPresent(Int.self, forKey: .trendingScore)
         siblings = try container.decodeIfPresent([RepoSibling].self, forKey: .siblings)
         spaces = try container.decodeIfPresent([String].self, forKey: .spaces)
         safetensors = try container.decodeIfPresent(SafeTensorsInfo.self, forKey: .safetensors)
-        securityRepoStatus = try container.decodeIfPresent([String: AnyDecodable].self, forKey: .securityRepoStatus)
+        securityRepoStatus = try container.decodeIfPresent(
+            [String: AnyDecodable].self,
+            forKey: .securityRepoStatus
+        )
     }
 
     public func encode(to encoder: Encoder) throws {

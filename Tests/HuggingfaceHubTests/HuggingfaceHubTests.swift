@@ -6,8 +6,9 @@
 //
 
 import Foundation
-@testable import HuggingfaceHub
 import Testing
+
+@testable import HuggingfaceHub
 
 struct HuggingfaceHubTests {
     @Test
@@ -45,9 +46,17 @@ struct HuggingfaceHubTests {
         #expect("https://hub-ci.huggingface.co/api/spaces/repo_id".contains(regex))
         // /resolve Endpoint => True
         #expect("https://huggingface.co/gpt2/resolve/main/README.md".contains(regex))
-        #expect("https://huggingface.co/datasets/google/fleurs/resolve/revision/README.md".contains(regex))
+        #expect(
+            "https://huggingface.co/datasets/google/fleurs/resolve/revision/README.md".contains(
+                regex)
+        )
         // Regression tests
         #expect("https://huggingface.co/bert-base/resolve/main/pytorch_model.bin".contains(regex))
-        #expect("https://hub-ci.huggingface.co/__DUMMY_USER__/repo-1470b5/resolve/main/file.txt".contains(regex))
+        #expect(
+            "https://hub-ci.huggingface.co/__DUMMY_USER__/repo-1470b5/resolve/main/file.txt"
+                .contains(
+                    regex
+                )
+        )
     }
 }

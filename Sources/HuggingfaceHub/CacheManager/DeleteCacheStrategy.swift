@@ -19,7 +19,6 @@ struct DeleteCacheStrategy {
     }
 
     func execute() {
-        
+
     }
 }
-

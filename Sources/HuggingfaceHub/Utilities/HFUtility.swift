@@ -20,20 +20,22 @@ enum HFUtility {
         revision: String? = nil,
         endpoint: String? = nil
     ) -> URL {
-        let name = if let subfolder, !subfolder.isEmpty {
-            subfolder + "/" + filename
-        } else {
-            filename
-        }
+        let name =
+            if let subfolder, !subfolder.isEmpty {
+                subfolder + "/" + filename
+            } else {
+                filename
+            }
 
-        var repoId: String = switch repoType {
-        case .dataset:
-            "datasets/\(repoId)"
-        case .model:
-            repoId
-        case .space:
-            "spaces/\(repoId)"
-        }
+        var repoId: String =
+            switch repoType {
+            case .dataset:
+                "datasets/\(repoId)"
+            case .model:
+                repoId
+            case .space:
+                "spaces/\(repoId)"
+            }
 
         let revision: String = revision ?? Constants.defaultRevision
         let endpoint = endpoint ?? Constants.endpoint
@@ -53,7 +55,7 @@ enum HFUtility {
                 libraryName: libraryName,
                 libraryVersion: libraryVersion,
                 userAgent: userAgent
-            ),
+            )
         ]
 
         if let token {
@@ -74,11 +76,12 @@ enum HFUtility {
         libraryVersion: String? = nil,
         userAgent: [String: String]? = nil
     ) -> String {
-        var ua = if let libraryName {
-            "\(libraryName)/\(libraryVersion ?? "None")"
-        } else {
-            "unknown/None"
-        }
+        var ua =
+            if let libraryName {
+                "\(libraryName)/\(libraryVersion ?? "None")"
+            } else {
+                "unknown/None"
+            }
 
         ua += "; hf_hub/\(Constants.version)"
         ua += "; swift_hf_hub/\(Constants.version)"
@@ -105,7 +108,8 @@ enum HFUtility {
             let errorCode = response.value(forHTTPHeaderField: "X-Error-Code")
             let errorMessage = response.value(forHTTPHeaderField: "X-Error-Message")
 
-            let repoApiRegex = #/^https://[^/]+(/api/(models|datasets|spaces)/(.+)|/(.+)/resolve/(.+))/#
+            let repoApiRegex =
+                #/^https://[^/]+(/api/(models|datasets|spaces)/(.+)|/(.+)/resolve/(.+))/#
 
             if errorCode == "RevisionNotFound" {
                 throw HFHubHTTPError.revisionNotFound(response)
@@ -115,7 +119,10 @@ enum HFUtility {
                 throw HFHubHTTPError.gatedRepo(response)
             } else if errorMessage == "Access to this resource is disabled." {
                 throw HFHubHTTPError.resourceDisabled(response)
-            } else if errorCode == "RepoNotFound" || (response.statusCode == 401 && response.url?.absoluteString.contains(repoApiRegex) ?? false) {
+            } else if errorCode == "RepoNotFound"
+                || (response.statusCode == 401
+                    && response.url?.absoluteString.contains(repoApiRegex) ?? false)
+            {
                 throw HFHubHTTPError.repoNotFound(response)
             } else if response.statusCode == 403 {
                 throw HFHubHTTPError.forbidden(response: response, errorMessage: errorMessage)
@@ -130,17 +137,19 @@ enum HFUtility {
     static func raiseForStatus(data: Data, response: HTTPURLResponse) throws {
         let reason = String(data: data, encoding: .utf8)
 
-        let httpErrorMessages = switch response.statusCode {
-        case 400 ..< 500:
-            "\(response.statusCode) Client Error: \(reason ?? "") for url: \(response.url?.absoluteString ?? "")"
-        case 500 ..< 600:
-            "\(response.statusCode) Server Error: \(reason ?? "") for url: \(response.url?.absoluteString ?? "")"
-        default:
-            ""
-        }
+        let httpErrorMessages =
+            switch response.statusCode {
+            case 400 ..< 500:
+                "\(response.statusCode) Client Error: \(reason ?? "") for url: \(response.url?.absoluteString ?? "")"
+            case 500 ..< 600:
+                "\(response.statusCode) Server Error: \(reason ?? "") for url: \(response.url?.absoluteString ?? "")"
+            default:
+                ""
+            }
 
         if !httpErrorMessages.isEmpty {
-            throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: httpErrorMessages])
+            throw URLError(
+                .badServerResponse, userInfo: [NSLocalizedDescriptionKey: httpErrorMessages])
         }
     }
 }

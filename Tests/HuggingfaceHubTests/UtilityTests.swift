@@ -5,8 +5,9 @@
 //  Created by John Mai on 2024/11/15.
 //
 
-@testable import HuggingfaceHub
 import Testing
+
+@testable import HuggingfaceHub
 
 struct UtilityTests {
     @Test

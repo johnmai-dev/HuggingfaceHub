@@ -32,20 +32,31 @@ public enum HFHubHTTPError: Error, LocalizedError, Equatable {
         case .invalidExpandOptions:
             "`expand` cannot be used if `securityStatus` or `files_metadata` are set."
         case .revisionNotFound(let response):
-            "\(response.statusCode) Client Error." + "\n\n" + "Revision Not Found for url: \(response.url?.absoluteString ?? "")."
+            "\(response.statusCode) Client Error." + "\n\n"
+                + "Revision Not Found for url: \(response.url?.absoluteString ?? "")."
         case .entryNotFound(let response):
-            "\(response.statusCode) Client Error." + "\n\n" + "Entry Not Found for url: \(response.url?.absoluteString ?? "")."
+            "\(response.statusCode) Client Error." + "\n\n"
+                + "Entry Not Found for url: \(response.url?.absoluteString ?? "")."
         case .gatedRepo(let response):
-            "\(response.statusCode) Client Error." + "\n\n" + "Cannot access gated repo for url: \(response.url?.absoluteString ?? "")."
+            "\(response.statusCode) Client Error." + "\n\n"
+                + "Cannot access gated repo for url: \(response.url?.absoluteString ?? "")."
 
         case .resourceDisabled(let response):
-            "\(response.statusCode) Client Error." + "\n\n" + "Cannot access repository for url \(response.url?.absoluteString ?? "")." + "\n" + "Access to this resource is disabled."
+            "\(response.statusCode) Client Error." + "\n\n"
+                + "Cannot access repository for url \(response.url?.absoluteString ?? "")." + "\n"
+                + "Access to this resource is disabled."
         case .repoNotFound(let response):
-            "\(response.statusCode) Client Error." + "\n\n" + "Repository Not Found for url: \(response.url?.absoluteString ?? "")." + "\nPlease make sure you specified the correct `repo_id` and `repo_type`." + "\nIf you are trying to access a private or gated repo, make sure you are authenticated."
-        case .forbidden(response: let response, errorMessage: let errorMessage):
-            "\(response.statusCode) Forbidden: \(errorMessage ?? "unknown")." + "\nCannot access content at: \(response.url?.absoluteString ?? "")." + "\nMake sure your token has the correct permissions."
+            "\(response.statusCode) Client Error." + "\n\n"
+                + "Repository Not Found for url: \(response.url?.absoluteString ?? "")."
+                + "\nPlease make sure you specified the correct `repo_id` and `repo_type`."
+                + "\nIf you are trying to access a private or gated repo, make sure you are authenticated."
+        case .forbidden(let response, let errorMessage):
+            "\(response.statusCode) Forbidden: \(errorMessage ?? "unknown")."
+                + "\nCannot access content at: \(response.url?.absoluteString ?? "")."
+                + "\nMake sure your token has the correct permissions."
         case .rangeNotSatisfiable(let response):
-            "\(response.statusCode) Requested range not satisfiable." + "\n\n" + "Requested range: \(response.allHeaderFields["Range"] ?? ""). Content-Range: \(response.allHeaderFields["Content-Range"] ?? "")."
+            "\(response.statusCode) Requested range not satisfiable." + "\n\n"
+                + "Requested range: \(response.allHeaderFields["Range"] ?? ""). Content-Range: \(response.allHeaderFields["Content-Range"] ?? "")."
         }
     }
 }

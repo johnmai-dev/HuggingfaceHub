@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 extension OutputStream {
 
     /// Write `Data` to `OutputStream`

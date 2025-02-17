@@ -7,21 +7,22 @@
 
 import Foundation
 
-public extension HFApi {
-    
-    func repoInfo(
+extension HFApi {
+
+    public func repoInfo(
         repoId: String,
         options: ModelInfoOptions = .init()
     ) async throws -> RepoInfoType {
         return try await self.modelInfo(repoId: repoId, options: options)
     }
-        
-    
-    func modelInfo(
+
+    public func modelInfo(
         repoId: String,
         options: ModelInfoOptions = .init()
     ) async throws -> ModelInfo {
-        if options.expand != nil, options.expand?.isEmpty == false, options.securityStatus == true || options.filesMetadata {
+        if options.expand != nil, options.expand?.isEmpty == false,
+            options.securityStatus == true || options.filesMetadata
+        {
             throw Error.invalidExpandOptions
         }
 
@@ -47,15 +48,14 @@ public extension HFApi {
         }
 
         if options.expand?.isEmpty == false {
-            queryItems.append(URLQueryItem(name: "expand", value: options.expand!.map(\.rawValue).joined(separator: ",")))
+            queryItems.append(
+                URLQueryItem(name: "expand", value: options.expand!.map(\.rawValue).joined(separator: ",")))
         }
 
         urlComponents.queryItems = queryItems
 
         var request = URLRequest(url: urlComponents.url!)
         request.allHTTPHeaderFields = headers
-        
-        print("request url -> ",request.url?.absoluteString)
 
         let (data, response) = try await session.data(for: request)
 
@@ -64,26 +64,23 @@ public extension HFApi {
         }
 
         switch httpResponse.statusCode {
-        case 200..<300: break
-        case 400..<500: throw Error.authenticationError
+        case 200 ..< 300: break
+        case 400 ..< 500: throw Error.authenticationError
         default: throw Error.httpStatusCode(httpResponse.statusCode)
         }
-        
+
         let decoder = JSONDecoder()
 
         decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
-        
-        print(String(data:data, encoding: .utf8)!)
-        
-        let parsed = try JSONSerialization.jsonObject(with: data, options: [])
-        print("parsed -> ",((parsed as! [String: Any])["tags"] as! [String])[0])
+
+        //        let parsed = try JSONSerialization.jsonObject(with: data, options: [])
 
         return try decoder.decode(ModelInfo.self, from: data)
     }
 }
 
-public extension HFApi {
-    struct ModelInfoOptions {
+extension HFApi {
+    public struct ModelInfoOptions {
         let revision: String?
         let timeout: TimeInterval?
         let securityStatus: Bool?
@@ -108,7 +105,7 @@ public extension HFApi {
         }
     }
 
-    enum ExpandModelProperty: String, Codable {
+    public enum ExpandModelProperty: String, Codable {
         case author
         case baseModels
         case cardData

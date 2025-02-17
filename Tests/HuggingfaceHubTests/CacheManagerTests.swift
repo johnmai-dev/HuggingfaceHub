@@ -6,8 +6,9 @@
 //
 
 import Foundation
-@testable import HuggingfaceHub
 import Testing
+
+@testable import HuggingfaceHub
 
 struct CacheManagerTests {
     @Test

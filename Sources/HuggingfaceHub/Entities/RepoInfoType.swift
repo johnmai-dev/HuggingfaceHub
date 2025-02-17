@@ -11,4 +11,3 @@ public protocol RepoInfoType {
     var sha: String? { get }
     var siblings: [RepoSibling]? { get }
 }
-

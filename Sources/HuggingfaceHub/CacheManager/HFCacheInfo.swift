@@ -5,7 +5,6 @@
 //  Created by John Mai on 2024/11/11.
 //
 
-
 import Foundation
 
 public struct HFCacheInfo {

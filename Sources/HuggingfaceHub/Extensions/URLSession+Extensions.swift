@@ -16,9 +16,7 @@ extension URLSession {
                     return
                 }
 
-                guard let fileURL,
-                      let response
-                else {
+                guard let fileURL, let response else {
                     continuation.resume(throwing: URLError(.badServerResponse))
                     return
                 }
@@ -39,7 +37,7 @@ extension URLSession {
                 }
 
                 guard let fileURL,
-                      let response
+                    let response
                 else {
                     continuation.resume(throwing: URLError(.badServerResponse))
                     return

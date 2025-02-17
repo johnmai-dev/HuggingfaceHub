@@ -6,18 +6,21 @@
 //
 
 import Foundation
-@testable import HuggingfaceHub
 import Testing
+
+@testable import HuggingfaceHub
 
 struct SnapshotDownloaderTests {
     @Test
     func download() async throws {
-//        let downloader = SnapshotDownloader(repoId: "HuggingFaceTB/SmolLM2-135M")
-        let downloader = SnapshotDownloader(repoId: "Qwen/QwQ-32B-Preview", options: .init(onProgress: { progress in
-            print("下载进度 ->", progress)
-        }))
+        let downloader = SnapshotDownloader(
+            repoId: "mlx-community/Qwen2.5-Coder-0.5B-4bit-gs32",
+            options: .init(onProgress: { progress in
+                print("下载进度 ->", progress)
+            })
+        )
         let snapshot = try await downloader.download()
-        print(snapshot)
-        sleep(60*5)
+
+        print("snapshot ->", snapshot)
     }
 }

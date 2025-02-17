@@ -1,3 +1,5 @@
+import Testing
+
 //
 //  UserApiTests.swift
 //  HuggingfaceHub
@@ -5,7 +7,6 @@
 //  Created by John Mai on 2024/11/7.
 //
 @testable import HuggingfaceHub
-import Testing
 
 struct UserApiTests {
     @Test func whoami() async throws {

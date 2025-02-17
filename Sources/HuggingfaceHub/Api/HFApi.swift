@@ -45,7 +45,7 @@ public class HFApi {
                 libraryName: libraryName ?? self.libraryName,
                 libraryVersion: libraryVersion ?? self.libraryVersion,
                 userAgent: userAgent
-            ),
+            )
         ]
 
         if let token {
@@ -88,8 +88,8 @@ public class HFApi {
     }
 }
 
-public extension HFApi {
-    enum Error: Swift.Error, LocalizedError, Equatable {
+extension HFApi {
+    public enum Error: Swift.Error, LocalizedError, Equatable {
         case invalidResponse
         case authenticationError
         case httpStatusCode(Int)

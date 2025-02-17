@@ -9,12 +9,13 @@ import Foundation
 import HuggingfaceHub
 
 @main
-struct HuggingfaceHubCLI: ParsableCommand {
+struct HuggingfaceHubCLI: AsyncParsableCommand {
+
     static let configuration = CommandConfiguration(
         commandName: "huggingface-cli",
         abstract: "huggingface-cli command helpers",
         usage: "huggingface-cli <command> [<args>]",
         version: Constants.version,
-        subcommands: [ScanCacheCommand.self]
+        subcommands: [ScanCacheCommand.self, DownloadCommand.self]
     )
 }
