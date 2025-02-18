@@ -30,6 +30,7 @@ public actor FileDownloader {
         self.options = options
     }
 
+    @discardableResult
     public func download() async throws -> URL {
         var etagTimeout = options.etagTimeout
         if etagTimeout != Constants.hfHubEtagTimeout {
@@ -211,6 +212,8 @@ public actor FileDownloader {
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = options.headers
 
+        try Task.checkCancellation()
+
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
 
@@ -229,9 +232,11 @@ public actor FileDownloader {
             task = session.downloadTask(with: request)
             task?.resume()
 
-            NSLog("Download complete. Moving file to \(destinationURL.path())")
+            NSLog("Download complete. Moving \(filename) file to \(destinationURL.path())")
 
-            print()
+            if !options.quiet {
+                print()
+            }
         }
     }
 
@@ -700,6 +705,12 @@ extension FileDownloader {
             totalBytesWritten: Int64,
             totalBytesExpectedToWrite: Int64
         ) {
+            if Task.isCancelled {
+                downloadTask.cancel()
+                continuation.resume(throwing: CancellationError())
+                return
+            }
+
             guard shouldUpdate() else { return }
 
             onProgress(totalBytesWritten, totalBytesExpectedToWrite)

@@ -7,9 +7,10 @@
 
 import Foundation
 
-public final class SnapshotDownloader: Sendable {
+public actor SnapshotDownloader {
     let repoId: String
     let options: Options
+    var tasks: [FileDownloader] = []
 
     public init(repoId: String, options: Options = .init()) {
         self.repoId = repoId
@@ -120,13 +121,15 @@ public final class SnapshotDownloader: Sendable {
 
         var progressBar: ProgressBar?
         if !options.quiet {
-            let progressBar = ProgressBar(title: "Fetching \(filteredRepoFiles.count) files", total: 0, type: .count)
-            await progressBar.update(current: 0)
+            progressBar = ProgressBar(title: "Fetching \(filteredRepoFiles.count) files", total: 0, type: .count)
+            await progressBar?.update(current: 0)
         }
 
         for file in filteredRepoFiles {
+            try Task.checkCancellation()
+
             let fileProgress = Progress(totalUnitCount: 100, parent: progress, pendingUnitCount: 1)
-            _ = try await FileDownloader(
+            let task = FileDownloader(
                 repoId: repoId,
                 filename: file,
                 options: .init(
@@ -149,7 +152,10 @@ public final class SnapshotDownloader: Sendable {
                     },
                     quiet: options.quiet
                 )
-            ).download()
+            )
+            tasks.append(task)
+
+            try await task.download()
 
             await progressBar?.update(current: progress.completedUnitCount, total: progress.totalUnitCount)
 
@@ -187,6 +193,25 @@ public final class SnapshotDownloader: Sendable {
         //        }
 
         return snapshotFolder
+    }
+
+    public func cancel() async {
+        for task in tasks {
+            await task.cancel()
+        }
+        tasks = []
+    }
+
+    public func pause() async {
+        for task in tasks {
+            await task.pause()
+        }
+    }
+
+    public func resume() async {
+        for task in tasks {
+            await task.resume()
+        }
     }
 }
 
