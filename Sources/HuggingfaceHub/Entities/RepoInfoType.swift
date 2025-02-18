@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol RepoInfoType {
+public protocol RepoInfoType: Sendable {
     var sha: String? { get }
     var siblings: [RepoSibling]? { get }
 }

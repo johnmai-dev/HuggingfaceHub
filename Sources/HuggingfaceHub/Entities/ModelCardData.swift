@@ -5,7 +5,7 @@
 //  Created by John Mai on 2024/11/13.
 //
 
-public struct ModelCardData: Codable {
+public struct ModelCardData: Codable, Sendable {
     public let baseModel: FlexibleValue<String>?
     public let datasets: FlexibleValue<String>?
     public let language: FlexibleValue<String>?

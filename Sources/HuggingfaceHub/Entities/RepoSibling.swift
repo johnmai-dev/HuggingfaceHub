@@ -5,7 +5,7 @@
 //  Created by John Mai on 2024/11/13.
 //
 
-public struct RepoSibling: Codable {
+public struct RepoSibling: Codable, Sendable {
     let rfilename: String
     let size: Int?
     let blobId: String?

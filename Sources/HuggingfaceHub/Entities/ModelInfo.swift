@@ -8,7 +8,7 @@
 import AnyCodable
 import Foundation
 
-public struct ModelInfo: Codable, RepoInfoType {
+public struct ModelInfo: Codable, RepoInfoType, @unchecked Sendable {
     public let id: String
     public let author: String?
     public let sha: String?
@@ -46,7 +46,7 @@ public struct ModelInfo: Codable, RepoInfoType {
         }
     }
 
-    public enum GatedStatus: String, Codable {
+    public enum GatedStatus: String, Codable, Sendable {
         case auto
         case manual
         case disabled = "false"
@@ -70,7 +70,7 @@ public struct ModelInfo: Codable, RepoInfoType {
         }
     }
 
-    public enum InferenceStatus: String, Codable {
+    public enum InferenceStatus: String, Codable, Sendable {
         case warm
         case cold
         case frozen

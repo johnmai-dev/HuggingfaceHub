@@ -5,7 +5,7 @@
 //  Created by John Mai on 2024/11/13.
 //
 
-public struct TransformersInfo: Codable {
+public struct TransformersInfo: Codable, Sendable {
     public let autoModel: String
     public let customClass: String?
     public let pipelineTag: String?

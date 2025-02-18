@@ -7,7 +7,7 @@
 import Foundation
 
 /// A generic enum to handle both single and array values of the same type
-public enum FlexibleValue<T: Codable>: Codable {
+public enum FlexibleValue<T: Codable>: Codable, @unchecked Sendable {
     case single(T)
     case array([T])
 
