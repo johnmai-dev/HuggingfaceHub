@@ -198,12 +198,12 @@ public actor FileDownloader {
             return destinationURL
         }
 
-        NSLog("Downloading \(filename)")
+        NSLog("Downloading \(filename)...")
 
         if let expectedSize {
             checkDiskSpace(
-                needed: expectedSize,
-                at: destinationURL.deletingLastPathComponent()
+                expectedSize: expectedSize,
+                targetDir: destinationURL.deletingLastPathComponent()
             )
         }
 
@@ -219,7 +219,9 @@ public actor FileDownloader {
                 delegate: Delegate(
                     continuation: continuation,
                     destinationURL: destinationURL,
-                    onProgress: options.onProgress
+                    onProgress: options.onProgress,
+                    filename: filename,
+                    quiet: options.quiet
                 ),
                 delegateQueue: nil
             )
@@ -227,7 +229,9 @@ public actor FileDownloader {
             task = session.downloadTask(with: request)
             task?.resume()
 
-            NSLog("Download complete. Moving file to \(destinationURL)")
+            NSLog("Download complete. Moving file to \(destinationURL.path())")
+
+            print()
         }
     }
 
@@ -255,8 +259,32 @@ public actor FileDownloader {
         }
     }
 
-    private func checkDiskSpace(needed: Int, at url: URL) {
-        NSLog("checkDiskSpace -> Not implemented")
+    private func checkDiskSpace(expectedSize: Int, targetDir: URL) {
+        var targetDir = targetDir
+
+        var paths = [targetDir]
+        while targetDir.path != "/" {
+            targetDir = targetDir.deletingLastPathComponent()
+            paths.append(targetDir)
+        }
+
+        for path in paths {
+            do {
+                let values = try path.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+
+                if let targetDirFree = values.volumeAvailableCapacityForImportantUsage {
+                    if targetDirFree < expectedSize {
+                        NSLog(
+                            "Not enough free disk space to download the file. The expected file size is: \(ByteCountFormatter.string(fromByteCount: Int64(expectedSize), countStyle: .file)). The target location \(path.path()) only has \(ByteCountFormatter.string(fromByteCount: Int64(targetDirFree), countStyle: .file)) free disk space."
+                        )
+                        return
+                    }
+                }
+            } catch {
+                continue
+            }
+        }
+
     }
 
     func createSymlink(src: URL, dst: URL, newBlob: Bool = false) throws {
@@ -277,7 +305,6 @@ public actor FileDownloader {
         let absDstFolder = absDst.deletingLastPathComponent()
 
         do {
-            NSLog("Creating pointer from \(absSrc) to \(absDst)")
             if let relativeSrc = absSrc.relativePath(from: absDstFolder) {
                 try fileManager.createSymbolicLink(
                     atPath: absDst.path(),
@@ -290,12 +317,11 @@ public actor FileDownloader {
                 )
             }
         } catch {
-            NSLog("Falling back to absolute path symlink")
             if newBlob {
-                NSLog("Moving file from \(absSrc) to \(absDst)")
+                NSLog("Symlink not supported. Moving file from \(absSrc) to \(absDst)")
                 try fileManager.moveItem(at: absSrc, to: absDst)
             } else {
-                NSLog("Copying file from \(absSrc) to \(absDst)")
+                NSLog("Symlink not supported. Copying file from \(absSrc) to \(absDst)")
                 try fileManager.copyItem(at: absSrc, to: absDst)
             }
         }
@@ -525,6 +551,7 @@ extension FileDownloader {
         var headers: [String: String]?
         let endpoint: String?
         let onProgress: @Sendable (Int64, Int64) -> Void
+        let quiet: Bool
 
         public init(
             subfolder: String? = nil,
@@ -542,7 +569,8 @@ extension FileDownloader {
             localFilesOnly: Bool = false,
             headers: [String: String]? = nil,
             endpoint: String? = nil,
-            onProgress: @escaping (@Sendable (Int64, Int64) -> Void) = { _, _ in }
+            onProgress: @escaping (@Sendable (Int64, Int64) -> Void) = { _, _ in },
+            quiet: Bool = false
         ) {
             self.subfolder = subfolder
             self.repoType = repoType
@@ -560,6 +588,7 @@ extension FileDownloader {
             self.headers = headers
             self.endpoint = endpoint
             self.onProgress = onProgress
+            self.quiet = quiet
         }
     }
 }
@@ -612,17 +641,25 @@ extension FileDownloader {
         private let continuation: CheckedContinuation<URL, Error>
         private let destinationURL: URL
         private let onProgress: @Sendable (Int64, Int64) -> Void
-        private let progressBar = ProgressBar()
+        private let filename: String
+
+        private let progressBar: ProgressBar?
+
         private let lock = NSLock()
         private var lastUpdateTime = Date()
+
         init(
             continuation: CheckedContinuation<URL, Error>,
             destinationURL: URL,
-            onProgress: @Sendable @escaping (Int64, Int64) -> Void
+            onProgress: @Sendable @escaping (Int64, Int64) -> Void,
+            filename: String,
+            quiet: Bool
         ) {
             self.continuation = continuation
             self.destinationURL = destinationURL
             self.onProgress = onProgress
+            self.filename = filename
+            self.progressBar = quiet ? nil : ProgressBar(title: filename, type: .network)
         }
 
         func urlSession(
@@ -667,8 +704,10 @@ extension FileDownloader {
 
             onProgress(totalBytesWritten, totalBytesExpectedToWrite)
 
-            Task {
-                await progressBar.update(currentBytes: totalBytesWritten, totalBytes: totalBytesExpectedToWrite)
+            if let progressBar {
+                Task {
+                    await progressBar.update(current: totalBytesWritten, total: totalBytesExpectedToWrite)
+                }
             }
         }
 
@@ -681,58 +720,5 @@ extension FileDownloader {
                 continuation.resume(throwing: error)
             }
         }
-    }
-}
-
-actor ProgressBar {
-    private var width: Int = 100
-    private let startTime: Date
-    private var lastUpdateTime: Date
-    private var lastBytes: Int64 = 0
-
-    init() {
-        self.startTime = Date()
-        self.lastUpdateTime = Date()
-    }
-
-    func update(currentBytes: Int64, totalBytes: Int64) {
-        let now = Date()
-        let timeElapsed = now.timeIntervalSince(startTime)
-        let timeSinceLastUpdate = now.timeIntervalSince(lastUpdateTime)
-
-        // 计算速度
-        let bytesSinceLastUpdate = currentBytes - lastBytes
-        let speed = Double(bytesSinceLastUpdate) / timeSinceLastUpdate
-
-        // 计算剩余时间
-        let remainingBytes = totalBytes - currentBytes
-        let eta = remainingBytes > 0 ? Double(remainingBytes) / speed : 0
-
-        // 计算进度百分比
-        let percentage = Double(currentBytes) * 100.0 / Double(totalBytes)
-
-        // 创建进度条
-        let filledWidth = Int(Double(width) * percentage / 100.0)
-        let emptyWidth = width - filledWidth
-        let progressBar = String(repeating: "█", count: filledWidth) + String(repeating: "░", count: emptyWidth)
-
-        // 清除当前行并更新进度
-        print("\u{1B}[1A\u{1B}[K", terminator: "")  // 移动光标到行首并清除行
-        print(
-            String(
-                format: "%.1f%%|%@| %@/%@ [%@<%@, %@]",
-                percentage,
-                progressBar,
-                ByteCountFormatter.string(fromByteCount: currentBytes, countStyle: .file),
-                ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file),
-                timeElapsed.formattedDuration(),
-                eta.formattedDuration(),
-                ByteCountFormatter.string(fromByteCount: Int64(speed), countStyle: .file) + "/s"
-            )
-        )
-
-        // 更新最后更新时间和字节数
-        lastUpdateTime = now
-        lastBytes = currentBytes
     }
 }

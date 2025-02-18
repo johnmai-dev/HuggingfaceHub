@@ -9,12 +9,6 @@ import Testing
 @testable import HuggingfaceHub
 
 struct UserApiTests {
-    @Test func whoami() async throws {
-        let api = HFApi()
-        let response = try await api.whoami(token: "hf_test")
-        print(response)
-    }
-
     @Test func whoamiAuthenticationError() async throws {
         await #expect(throws: HFApi.Error.authenticationError) {
             let api = HFApi()

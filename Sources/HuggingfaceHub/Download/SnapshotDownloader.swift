@@ -118,6 +118,12 @@ public final class SnapshotDownloader: Sendable {
 
         //        if Constants.hfHubEnableHFTransfer {
 
+        var progressBar: ProgressBar?
+        if !options.quiet {
+            let progressBar = ProgressBar(title: "Fetching \(filteredRepoFiles.count) files", total: 0, type: .count)
+            await progressBar.update(current: 0)
+        }
+
         for file in filteredRepoFiles {
             let fileProgress = Progress(totalUnitCount: 100, parent: progress, pendingUnitCount: 1)
             _ = try await FileDownloader(
@@ -140,9 +146,12 @@ public final class SnapshotDownloader: Sendable {
                     onProgress: { (totalBytesWritten, totalBytesExpectedToWrite) in
                         fileProgress.completedUnitCount = (totalBytesWritten / totalBytesExpectedToWrite) * 100
                         self.options.onProgress(progress)
-                    }
+                    },
+                    quiet: options.quiet
                 )
             ).download()
+
+            await progressBar?.update(current: progress.completedUnitCount, total: progress.totalUnitCount)
 
             fileProgress.completedUnitCount = 100
         }
@@ -201,6 +210,7 @@ extension SnapshotDownloader {
         let headers: [String: String]?
         let endpoint: String?
         let onProgress: @Sendable (Progress) -> Void
+        let quiet: Bool
 
         public init(
             repoType: RepoType = .model,
@@ -220,7 +230,8 @@ extension SnapshotDownloader {
             maxWorkers: Int = 8,
             headers: [String: String]? = nil,
             endpoint: String? = nil,
-            onProgress: @Sendable @escaping (Progress) -> Void = { _ in }
+            onProgress: @Sendable @escaping (Progress) -> Void = { _ in },
+            quiet: Bool = true
         ) {
             self.repoType = repoType
             self.revision = revision
@@ -240,6 +251,7 @@ extension SnapshotDownloader {
             self.headers = headers
             self.endpoint = endpoint
             self.onProgress = onProgress
+            self.quiet = quiet
         }
     }
 }

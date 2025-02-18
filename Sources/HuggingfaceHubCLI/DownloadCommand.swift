@@ -8,97 +8,6 @@
 import ArgumentParser
 import Foundation
 import HuggingfaceHub
-@preconcurrency import Tqdm
-
-actor ProgressBar {
-    private let width: Int = 40
-    private var lastPrintedPercentage: Int = -1
-    private var startTime: Date?
-    private var lastUpdateTime: Date?
-    private var lastCompletedUnits: Int64 = 0
-
-    func update(progress: Progress) {
-        if startTime == nil {
-            startTime = Date()
-        }
-
-        let now = Date()
-        let percentage = Int(progress.fractionCompleted * 100)
-
-        // 避免过于频繁的更新，只在百分比变化时更新显示
-        if percentage != lastPrintedPercentage {
-            lastPrintedPercentage = percentage
-
-            // 计算进度条
-            let filled = Int(Double(width) * progress.fractionCompleted)
-            let empty = width - filled
-            let bar = String(repeating: "█", count: filled) + String(repeating: "░", count: empty)
-
-            // 计算速度
-            var speedStr = "计算中..."
-            if let lastUpdate = lastUpdateTime {
-                let timeInterval = now.timeIntervalSince(lastUpdate)
-                let unitsDiff = progress.completedUnitCount - lastCompletedUnits
-                let unitsPerSecond = Double(unitsDiff) / timeInterval
-                speedStr = formatSpeed(unitsPerSecond)
-            }
-
-            // 估算剩余时间
-            var remainingTime = "计算中..."
-            if let start = startTime, progress.fractionCompleted > 0 {
-                let elapsedTime = now.timeIntervalSince(start)
-                let estimatedTotalTime = elapsedTime / progress.fractionCompleted
-                let remainingSeconds = estimatedTotalTime - elapsedTime
-                remainingTime = formatTime(remainingSeconds)
-            }
-
-            // 构建状态行
-            let statusLine = String(
-                format: "\r%3d%% [\(bar)] %@ - 剩余: %@",
-                percentage,
-                speedStr,
-                remainingTime)
-
-            print(statusLine, terminator: "")
-            fflush(stdout)
-
-            // 下载完成时换行
-            if progress.fractionCompleted >= 1.0 {
-                print()
-            }
-        }
-
-        lastUpdateTime = now
-        lastCompletedUnits = progress.completedUnitCount
-    }
-
-    private func formatSpeed(_ unitsPerSecond: Double) -> String {
-        let units = ["B/s", "KB/s", "MB/s", "GB/s"]
-        var speed = unitsPerSecond
-        var unitIndex = 0
-
-        while speed >= 1024 && unitIndex < units.count - 1 {
-            speed /= 1024
-            unitIndex += 1
-        }
-
-        return String(format: "%.1f %@", speed, units[unitIndex])
-    }
-
-    private func formatTime(_ seconds: Double) -> String {
-        if seconds.isInfinite || seconds.isNaN {
-            return "计算中..."
-        }
-
-        if seconds < 60 {
-            return String(format: "%.0f秒", seconds)
-        } else if seconds < 3600 {
-            return String(format: "%.1f分钟", seconds / 60)
-        } else {
-            return String(format: "%.1f小时", seconds / 3600)
-        }
-    }
-}
 
 struct ArrayStringArgument: ExpressibleByArgument {
     let value: [String]
@@ -209,7 +118,8 @@ struct DownloadCommand: AsyncParsableCommand {
                     cacheDir: cacheDir != nil ? URL(fileURLWithPath: cacheDir!) : nil,
                     localDir: localDir != nil ? URL(fileURLWithPath: localDir!) : nil,
                     forceDownload: forceDownload,
-                    token: token
+                    token: token,
+                    quiet: quiet
                 )
             )
 
@@ -228,8 +138,6 @@ struct DownloadCommand: AsyncParsableCommand {
             ignorePatterns = []
         }
 
-        let progressBar = ProgressBar()
-
         let downloader = SnapshotDownloader(
             repoId: repoId,
             options: .init(
@@ -243,13 +151,7 @@ struct DownloadCommand: AsyncParsableCommand {
                 allowPatterns: allowPatterns,
                 ignorePatterns: ignorePatterns,
                 maxWorkers: maxWorkers,
-                onProgress: { progress in
-                    if !quiet {
-                        Task {
-                            await progressBar.update(progress: progress)
-                        }
-                    }
-                }
+                quiet: quiet
             )
         )
         let snapshot = try await downloader.download()

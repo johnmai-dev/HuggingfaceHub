@@ -5,6 +5,7 @@
 //  Created by John Mai on 2024/11/15.
 //
 
+import Foundation
 import Testing
 
 @testable import HuggingfaceHub
@@ -60,5 +61,18 @@ struct UtilityTests {
         )
 
         #expect(expectedItems == validItems)
+    }
+
+    @Test
+    func testProgressBar() async throws {
+        let current: Int64 = 10
+        let total: Int64 = 100
+
+        let networkProgressBar = ProgressBar(title: "config.json", type: .network)
+        await networkProgressBar.update(current: current, total: total)
+
+        let countProgressBar = ProgressBar(title: "Fetching \(total) files", type: .count)
+        await countProgressBar.update(current: current, total: total)
+
     }
 }

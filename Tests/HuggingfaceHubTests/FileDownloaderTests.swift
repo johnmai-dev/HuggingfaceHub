@@ -42,14 +42,16 @@ struct FileDownloaderTests {
     }
 
     @Test
-    func normalizeEtagTest() throws {
+    func normalizeEtagTest() async throws {
         let downloader = FileDownloader(
             repoId: "",
             filename: ""
         )
 
-        //        #expect(downloader.normalizeEtag("\"a16a55fda99d2f2e7b69cce5cf93ff4ad3049930\"") == "a16a55fda99d2f2e7b69cce5cf93ff4ad3049930")
-        //        #expect(downloader.normalizeEtag("W/\"a16a55fda99d2f2e7b69cce5cf93ff4ad3049930\"") == "a16a55fda99d2f2e7b69cce5cf93ff4ad3049930")
+        let etag = "a16a55fda99d2f2e7b69cce5cf93ff4ad3049930"
+
+        #expect(await downloader.normalizeEtag("\"\(etag)\"") == etag)
+        #expect(await downloader.normalizeEtag("W/\"\(etag)\"") == etag)
     }
 
     @Test
@@ -60,7 +62,7 @@ struct FileDownloaderTests {
             options: .init(
                 revision: "d233ae7673ea6b1ebbebcc01f354065142d46990",
                 cacheDir: FileManager.default.temporaryDirectory,
-                onProgress: { progress in
+                onProgress: { progress, d in
                     print("Download progress: \(progress)")
                 }
             )
@@ -68,6 +70,8 @@ struct FileDownloaderTests {
 
         let url = try await downloader.download()
 
-        print("Downloaded file to: \(url)")
+        #expect(
+            url.path().contains(
+                "models--Qwen--QwQ-32B-Preview/snapshots/d233ae7673ea6b1ebbebcc01f354065142d46990/config.json"))
     }
 }
