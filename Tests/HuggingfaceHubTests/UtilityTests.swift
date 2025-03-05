@@ -75,4 +75,14 @@ struct UtilityTests {
         await countProgressBar.update(current: current, total: total)
 
     }
+
+    //    @Test
+    //    func tryToLoadFromCache() throws {
+    //        let url = try Utility.tryToLoadFromCache(
+    //            repoId: "HuggingFaceTB/SmolLM2-135M",
+    //            filename: "README.md"
+    //        )
+    //
+    //        #expect(url?.path().hasSuffix("README.md") == true)
+    //    }
 }

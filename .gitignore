@@ -9,3 +9,4 @@ DerivedData/
 .idea
 .vscode
 .swiftpm
+.index-build

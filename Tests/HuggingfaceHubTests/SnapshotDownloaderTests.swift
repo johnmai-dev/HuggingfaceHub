@@ -48,4 +48,21 @@ struct SnapshotDownloaderTests {
         try? await Task.sleep(nanoseconds: 2_000_000_000)
     }
 
+    @Test
+    func pause() async throws {
+        let downloader = SnapshotDownloader(
+            repoId: "HuggingFaceTB/SmolLM2-135M",
+            options: .init(quiet: false)
+        )
+
+        Task {
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+            await downloader.pause()
+            try await Task.sleep(nanoseconds: 2_000_000_000)
+            try await downloader.download()
+        }
+
+        let snapshot = try await downloader.download()
+    }
+
 }

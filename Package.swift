@@ -23,6 +23,10 @@ let package = Package(
             url: "https://github.com/Flight-School/AnyCodable",
             from: "0.6.0"
         ),
+        .package(
+            url: "https://github.com/groue/Semaphore",
+            from: "0.1.0"
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -30,7 +34,8 @@ let package = Package(
         .target(
             name: "HuggingfaceHub",
             dependencies: [
-                "AnyCodable"
+                "AnyCodable",
+                "Semaphore",
             ]
         ),
         .testTarget(
