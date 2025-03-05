@@ -72,4 +72,54 @@ public enum Utility {
         #endif
         return "unknown or less than 5.5"
     }
+
+    public static func tryToLoadFromCache(
+        repoId: String,
+        filename: String,
+        cacheDir: URL? = nil,
+        revision: String? = nil,
+        repoType: RepoType? = nil
+    ) throws -> URL? {
+        var revision = revision ?? Constants.defaultRevision
+        let repoType = repoType ?? .model
+        let cacheDir = cacheDir ?? URL(fileURLWithPath: Constants.hfHubCache.expandingTildeInPath).standardized
+
+        let objectID = repoId.replacingOccurrences(of: "/", with: "--")
+        let repoCache = cacheDir.appendingPathComponent("\(repoType.rawValue)s--\(objectID)")
+
+        if !repoCache.isDirectory() {
+            return nil
+        }
+
+        let refsDir = repoCache.appendingPathComponent("refs")
+        let snapshotsDir = repoCache.appendingPathComponent("snapshots")
+        let noExistDir = repoCache.appendingPathComponent(".no_exist")
+
+        if refsDir.isDirectory() {
+            let revisionFile = refsDir.appendingPathComponent(revision)
+            if revisionFile.isFile() {
+                revision = try String(contentsOf: revisionFile)
+            }
+        }
+
+        if noExistDir.appendingPathComponent(revision).appendingPathComponent(filename).isFile() {
+            return nil
+        }
+
+        if !snapshotsDir.isDirectory() {
+            return nil
+        }
+
+        let cachedSHAs = try FileManager.default.contentsOfDirectory(atPath: snapshotsDir.path)
+
+        if !cachedSHAs.contains(revision) {
+            return nil
+        }
+
+        if !snapshotsDir.appendingPathComponent(revision).appendingPathComponent(filename).isFile() {
+            return nil
+        }
+
+        return snapshotsDir.appendingPathComponent(revision).appendingPathComponent(filename)
+    }
 }

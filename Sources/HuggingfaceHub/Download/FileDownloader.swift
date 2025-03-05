@@ -166,6 +166,10 @@ public actor FileDownloader {
 
         let lock = WeakFileLock(lockPath: lockURL.path())
 
+        if resumeData != nil {
+            lock.release()
+        }
+
         try? await lock.acquire()
         defer {
             lock.release()
@@ -229,7 +233,12 @@ public actor FileDownloader {
                 delegateQueue: nil
             )
 
-            task = session.downloadTask(with: request)
+            if let resumeData {
+                task = session.downloadTask(withResumeData: resumeData)
+                self.resumeData = nil
+            } else {
+                task = session.downloadTask(with: request)
+            }
             task?.resume()
 
             NSLog("Download complete. Moving \(filename) file to \(destinationURL.path())")
@@ -246,6 +255,7 @@ public actor FileDownloader {
 
     public func cancel() {
         task?.cancel()
+        self.resumeData = nil
     }
 
     public func pause() {
@@ -253,14 +263,6 @@ public actor FileDownloader {
             Task {
                 await self.setResumeData(data)
             }
-        }
-    }
-
-    public func resume() {
-        if let resumeData {
-            task = session?.downloadTask(withResumeData: resumeData)
-            task?.resume()
-            self.resumeData = nil
         }
     }
 
@@ -714,7 +716,7 @@ extension FileDownloader {
             guard shouldUpdate() else { return }
 
             onProgress(totalBytesWritten, totalBytesExpectedToWrite)
-
+            
             if let progressBar {
                 Task {
                     await progressBar.update(current: totalBytesWritten, total: totalBytesExpectedToWrite)

@@ -41,3 +41,8 @@ public struct CachedRepoInfo {
 }
 
 extension CachedRepoInfo: Hashable {}
+extension CachedRepoInfo: Identifiable {
+    public var id: String {
+        repoId
+    }
+}

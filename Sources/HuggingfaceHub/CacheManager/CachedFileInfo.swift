@@ -29,3 +29,8 @@ public struct CachedFileInfo {
 }
 
 extension CachedFileInfo: Hashable {}
+extension CachedFileInfo: Identifiable {
+    public var id: String {
+        fileName
+    }
+}

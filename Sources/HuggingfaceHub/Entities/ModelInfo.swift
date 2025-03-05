@@ -5,10 +5,10 @@
 //  Created by John Mai on 2024/11/13.
 //
 
-import AnyCodable
+@preconcurrency import AnyCodable
 import Foundation
 
-public struct ModelInfo: Codable, RepoInfoType, @unchecked Sendable {
+public struct ModelInfo: Codable, RepoInfoType {
     public let id: String
     public let author: String?
     public let sha: String?
@@ -19,7 +19,7 @@ public struct ModelInfo: Codable, RepoInfoType, @unchecked Sendable {
     public let downloads: Int?
     public let downloadsAllTime: Int?
     public let gated: GatedStatus?
-    public let gguf: [String: Any]?
+    public let gguf: [String: any Sendable]?
     public let inference: InferenceStatus?
     public let likes: Int?
     public let libraryName: String?
@@ -28,14 +28,14 @@ public struct ModelInfo: Codable, RepoInfoType, @unchecked Sendable {
     public let maskToken: String?
     public let cardData: ModelCardData?
     public let widgetData: [WidgetData]?
-    public let modelIndex: [String: Any]?
-    public let config: [String: Any]?
+    public let modelIndex: [String: any Sendable]?
+    public let config: [String: any Sendable]?
     public let transformersInfo: TransformersInfo?
     public let trendingScore: Int?
     public let siblings: [RepoSibling]?
     public let spaces: [String]?
     public let safetensors: SafeTensorsInfo?
-    public let securityRepoStatus: [String: Any]?
+    public let securityRepoStatus: [String: any Sendable]?
 
     public struct GenericResponse<T: Codable>: Codable {
         let value: T?
