@@ -8,10 +8,10 @@ The Swift client for the Huggingface Hub.
 
 > `huggingface_hub` Documentation (Python): https://huggingface.co/docs/huggingface_hub
 
-- [ ] Download files from the Hub
+- [x] Download files from the Hub
 - [ ] Upload files to the Hub
 - [ ] Command Line Interface (CLI)
-    - [ ] download
+    - [x] download
     - [ ] upload
     - [ ] repo-files
     - [ ] env
@@ -69,4 +69,10 @@ cli executable will be located in `.build/release/huggingface-cli`
 
 ```bash
 huggingface-cli scan-cache
+```
+
+#### Download
+
+```bash
+huggingface-cli download <model-name>
 ```
